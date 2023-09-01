@@ -19,7 +19,7 @@ const Navbar = () => {
           src="/acplus.jpg"
           alt="Company logo"
           width={200} // Set your desired width
-          height={200} // Set your desired height
+          height={51} // Set your desired height
         />
       </div>
     </div>

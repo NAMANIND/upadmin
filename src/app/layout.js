@@ -65,7 +65,7 @@ export default function RootLayout({ children }) {
                 src="/acplus.jpg"
                 alt="Company logo"
                 width={200} // Set your desired width
-                height={200} // Set your desired height
+                height={50} // Set your desired height
               />
               <h2 style={{ marginTop: "20px", marginBottom: "0" }}>
                 Admin Login
