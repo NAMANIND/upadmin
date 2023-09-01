@@ -1,13 +1,32 @@
 "use client";
+import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic"; // Import dynamic from Next.js
 
-import React, { useState } from "react";
-import JoditEditor from "jodit-react";
-import { serverTimestamp, doc, setDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { v4 as uuidv4 } from "uuid";
-import { db } from "../../utils/next.config";
+const JoditEditor = dynamic(() => import("jodit-react"), {
+  ssr: false, // Set ssr to false to prevent server-side rendering
+});
+const Image = dynamic(() => import("next/image"), {
+  ssr: false, // Set ssr to false to prevent server-side rendering
+});
+const { serverTimestamp, doc, setDoc } = dynamic(
+  () => import("firebase/firestore"),
+  {
+    ssr: false, // Set ssr to false to prevent server-side rendering
+  }
+);
+const { getStorage, ref, uploadBytes, getDownloadURL } = dynamic(
+  () => import("firebase/storage"),
+  {
+    ssr: false, // Set ssr to false to prevent server-side rendering
+  }
+);
+const { v4: uuidv4 } = dynamic(() => import("uuid"), {
+  ssr: false, // Set ssr to false to prevent server-side rendering
+});
+const { db } = dynamic(() => import("../../utils/next.config"), {
+  ssr: false, // Set ssr to false to prevent server-side rendering
+});
 import styles from "./page.module.css";
-import Image from "next/image";
 
 const AddNewPost = () => {
   const [title, setTitle] = useState("");
