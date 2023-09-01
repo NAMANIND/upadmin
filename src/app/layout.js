@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
   const handleLogin = () => {
     // You can add your logic to validate employee ID and password here
     // For simplicity, let's assume the login is successful if employee ID is "admin" and password is "password"
-    if (employeeId === "devloper" && password === "123") {
+    if (employeeId === "developer" && password === "123") {
       setIsLoggedIn(true);
     } else {
       alert("Invalid credentials. Please try again.");
