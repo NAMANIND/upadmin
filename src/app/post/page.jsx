@@ -1,10 +1,13 @@
 "use client";
+
 import React, { useState } from "react";
 import JoditEditor from "jodit-react";
+import { serverTimestamp, doc, setDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../../utils/next.config";
 import styles from "./page.module.css";
+import Image from "next/image";
 
 const AddNewPost = () => {
   const [title, setTitle] = useState("");
@@ -13,7 +16,6 @@ const AddNewPost = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(""); // Add an error state
 
   const handleMediaUpload = async (file) => {
     const storage = getStorage();
@@ -56,10 +58,8 @@ const AddNewPost = () => {
         setContent("");
         setMedia(null);
         setSelectedLanguage("");
-        setError(""); // Reset the error state
       } catch (error) {
         console.error("Error creating post:", error);
-        setError("An error occurred while creating the post."); // Set an error message
       } finally {
         setIsLoading(false);
       }
@@ -117,7 +117,7 @@ const AddNewPost = () => {
           {media && (
             <div className={styles["selected-media"]}>
               {media.type.startsWith("image/") && (
-                <img
+                <Image
                   src={URL.createObjectURL(media)}
                   alt="Selected Media"
                   width={100}
