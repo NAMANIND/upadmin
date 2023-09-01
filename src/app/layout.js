@@ -6,6 +6,7 @@ import "./globals.css";
 
 import Menu from "@/components/menu/Menu";
 import { TextField, Button, FormControl } from "@mui/material";
+import Image from "next/image";
 
 // export const metadata = {
 //   title: "Up App",
