@@ -60,13 +60,13 @@
 }
 .dataGrid {
   width: 100%;
-  height: 55vh;
+  height: 55vh !important;
 }
 
 @media (max-width: 768px) {
   .dataGrid {
-    width: 65%;
-    height: 60vh;
+    width: 65% !important;
+    height: 60vh !important;
   }
 
   .languageSelector {
