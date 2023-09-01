@@ -61,7 +61,12 @@ export default function RootLayout({ children }) {
                 background: "#fff",
               }}
             >
-              <img src="acplus.jpg" alt="Comapny logo" />
+              <Image
+                src="/acplus.jpg"
+                alt="Company logo"
+                width={200} // Set your desired width
+                height={200} // Set your desired height
+              />
               <h2 style={{ marginTop: "20px", marginBottom: "0" }}>
                 Admin Login
               </h2>

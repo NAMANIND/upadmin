@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 const Navbar = () => {
   return (
@@ -14,7 +15,12 @@ const Navbar = () => {
       }}
     >
       <div>
-        <img src="acplus.jpg" alt="Comapny logo" />
+        <Image
+          src="/acplus.jpg"
+          alt="Company logo"
+          width={200} // Set your desired width
+          height={200} // Set your desired height
+        />
       </div>
     </div>
   );
