@@ -34,7 +34,6 @@ const AddNewPost = () => {
 
   const handleAddPost = async () => {
     if (title && content && selectedLanguage) {
-      const storage = getStorage();
       let mediaUrl = null;
 
       if (media) {

@@ -31,6 +31,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./page.module.css"; // Import the CSS module
+
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -38,10 +39,8 @@ const Users = () => {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmployeeId, setNewUserEmployeeId] = useState("");
+  const [newUserTrade, setNewUserTrade] = useState(""); // Updated to use "Trade" field
 
-  const [newUserLanguage, setNewUserLanguage] = useState("English");
-
-  // ... (other state variables)
   const [searchValue, setSearchValue] = useState(""); // Add this line
   const filteredUsers = users.filter(
     (user) =>
@@ -49,8 +48,8 @@ const Users = () => {
         user.name.toLowerCase().includes(searchValue.toLowerCase())) ||
       (user.employeeId &&
         user.employeeId.toLowerCase().includes(searchValue.toLowerCase())) ||
-      (user.language &&
-        user.language.toLowerCase().includes(searchValue.toLowerCase()))
+      (user.trade && // Updated to use "trade" field
+        user.trade.toLowerCase().includes(searchValue.toLowerCase()))
   );
 
   useEffect(() => {
@@ -69,7 +68,7 @@ const Users = () => {
   const columns = [
     { field: "employeeId", headerName: "Employee ID", width: 250 },
     { field: "name", headerName: "Name", width: 200 },
-    { field: "language", headerName: "Language", width: 150 },
+    { field: "trade", headerName: "Trade", width: 150 }, // Updated to use "Trade" field
     {
       field: "actions",
       headerName: "Actions",
@@ -105,7 +104,7 @@ const Users = () => {
   };
 
   const handleAddUser = async () => {
-    if (!newUserName || !newUserEmployeeId || !newUserLanguage) {
+    if (!newUserName || !newUserEmployeeId || !newUserTrade) {
       alert("Please fill in all fields.");
       return;
     }
@@ -117,7 +116,7 @@ const Users = () => {
         userid: UserId,
         name: newUserName,
         employeeId: newUserEmployeeId,
-        language: newUserLanguage,
+        trade: newUserTrade, // Updated to use "Trade" field
       };
 
       await setDoc(userDocRef, userData, { merge: true });
@@ -125,7 +124,7 @@ const Users = () => {
 
       setNewUserName("");
       setNewUserEmployeeId("");
-      setNewUserLanguage("");
+      setNewUserTrade(""); // Updated to use "Trade" field
       setOpenModal(false);
     } catch (error) {
       console.error("Error adding user:", error);
@@ -136,7 +135,7 @@ const Users = () => {
     if (!event.target.closest(".modal-content")) {
       setNewUserName("");
       setNewUserEmployeeId("");
-      setNewUserLanguage("");
+      setNewUserTrade(""); // Updated to use "Trade" field
       setOpenModal(false);
     }
   };
@@ -204,26 +203,15 @@ const Users = () => {
             fullWidth
             margin="dense"
           />
-
-          <FormControl
+          <TextField
+            label="Trade" // Updated to use "Trade" field
+            value={newUserTrade} // Updated to use "Trade" field
+            onChange={(e) => setNewUserTrade(e.target.value)} // Updated to use "Trade" field
+            required
             fullWidth
             margin="dense"
-            style={{ marginBottom: "10px" }}
-          >
-            <InputLabel style={{ backgroundColor: "#fff", padding: "0px 6px" }}>
-              Language*
-            </InputLabel>
-            <Select
-              value={newUserLanguage}
-              onChange={(e) => setNewUserLanguage(e.target.value)}
-              required
-            >
-              {/* <MenuItem value="">Select Language</MenuItem> */}
-              <MenuItem value="English">English</MenuItem>
-              <MenuItem value="Hindi">Hindi</MenuItem>
-              <MenuItem value="Arabic">Arabic</MenuItem>
-            </Select>
-          </FormControl>
+          />
+
           <Button onClick={handleAddUser} variant="contained" color="primary">
             Add User
           </Button>
@@ -238,7 +226,7 @@ const Users = () => {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this user ?
+            Are you sure you want to delete this user?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
