@@ -5,27 +5,20 @@ import dynamic from "next/dynamic"; // Import dynamic from Next.js
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false, // Set ssr to false to prevent server-side rendering
 });
-const Image = dynamic(() => import("next/image"), {
-  ssr: false, // Set ssr to false to prevent server-side rendering
-});
-const { serverTimestamp, doc, setDoc } = dynamic(
-  () => import("firebase/firestore"),
-  {
-    ssr: false, // Set ssr to false to prevent server-side rendering
-  }
-);
+
+import Image from "next/image";
+
+import { serverTimestamp, doc, setDoc } from "firebase/firestore";
+
 const { getStorage, ref, uploadBytes, getDownloadURL } = dynamic(
   () => import("firebase/storage"),
   {
     ssr: false, // Set ssr to false to prevent server-side rendering
   }
 );
-const { v4: uuidv4 } = dynamic(() => import("uuid"), {
-  ssr: false, // Set ssr to false to prevent server-side rendering
-});
-const { db } = dynamic(() => import("../../utils/next.config"), {
-  ssr: false, // Set ssr to false to prevent server-side rendering
-});
+
+import { v4 as uuidv4 } from "uuid";
+import { db } from "../../utils/next.config";
 import styles from "./page.module.css";
 
 const AddNewPost = () => {

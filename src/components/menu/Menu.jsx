@@ -43,6 +43,7 @@ const Menu = () => {
               activePage === "home" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("home")}
+            style={{ textDecoration: "none" }} // Add this line
           >
             <HomeIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Home</span>
@@ -54,6 +55,7 @@ const Menu = () => {
               activePage === "post" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("post")}
+            style={{ textDecoration: "none" }} // Add this line
           >
             <PostAddIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Post</span>
@@ -65,6 +67,7 @@ const Menu = () => {
               activePage === "postlist" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("postlist")}
+            style={{ textDecoration: "none" }} // Add this line
           >
             <ListIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Post List</span>
@@ -76,6 +79,7 @@ const Menu = () => {
               activePage === "users" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("users")}
+            style={{ textDecoration: "none" }} // Add this line
           >
             <PeopleIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Users</span>
