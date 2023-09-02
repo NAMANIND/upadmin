@@ -37,49 +37,45 @@ const Menu = () => {
       }`}
     >
       <div className={styles["menu-links"]}>
-        <Link href="/" passHref>
+        <Link href="/" passHref style={{ textDecoration: "none" }}>
           <div
             className={`${styles["menu-link"]} ${
               activePage === "home" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("home")}
-            style={{ textDecoration: "none" }} // Add this line
           >
             <HomeIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Home</span>
           </div>
         </Link>
-        <Link href="/post" passHref>
+        <Link href="/post" passHref style={{ textDecoration: "none" }}>
           <div
             className={`${styles["menu-link"]} ${
               activePage === "post" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("post")}
-            style={{ textDecoration: "none" }} // Add this line
           >
             <PostAddIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Post</span>
           </div>
         </Link>
-        <Link href="/postlist" passHref>
+        <Link href="/postlist" passHref style={{ textDecoration: "none" }}>
           <div
             className={`${styles["menu-link"]} ${
               activePage === "postlist" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("postlist")}
-            style={{ textDecoration: "none" }} // Add this line
           >
             <ListIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Post List</span>
           </div>
         </Link>
-        <Link href="/users" passHref>
+        <Link href="/users" passHref style={{ textDecoration: "none" }}>
           <div
             className={`${styles["menu-link"]} ${
               activePage === "users" ? styles["active"] : ""
             }`}
             onClick={() => handlePageChange("users")}
-            style={{ textDecoration: "none" }} // Add this line
           >
             <PeopleIcon className={styles["icon"]} />
             <span className={styles["menu-text"]}>Users</span>
