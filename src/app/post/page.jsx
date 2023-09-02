@@ -2,7 +2,10 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic"; // Import dynamic from Next.js
 
-import JoditEditor from "jodit-react";
+const JoditEditor = dynamic(() => import("jodit-react"), {
+  ssr: false, // Set ssr to false to prevent server-side rendering
+});
+
 import Image from "next/image";
 
 import { serverTimestamp, doc, setDoc } from "firebase/firestore";
