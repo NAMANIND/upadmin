@@ -1,21 +1,26 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic"; // Import dynamic from Next.js
-
-const JoditEditor = dynamic(() => import("jodit-react"), {
-  ssr: false, // Set ssr to false to prevent server-side rendering
-});
-
+import dynamic from "next/dynamic";
 import Image from "next/image";
-
-import { serverTimestamp, doc, setDoc } from "firebase/firestore";
-
+import {
+  serverTimestamp,
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../../utils/next.config";
 import styles from "./page.module.css";
+import axios from "axios";
 
+const JoditEditor = dynamic(() => import("jodit-react"), {
+  ssr: false,
+});
 const AddNewPost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -30,6 +35,38 @@ const AddNewPost = () => {
     await uploadBytes(storageRef, file);
     const mediaUrl = await getDownloadURL(storageRef);
     return mediaUrl;
+  };
+
+  const sendNotification = async (
+    notificationTitle,
+    notiMessage,
+    expoPushTokens
+  ) => {
+    const notificationMessage =
+      notiMessage
+        .replace(/<[^>]*>/g, "") // Remove HTML tags
+        .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
+        .substring(0, 80) + "..."; // Trim to 80 characters
+
+    try {
+      const response = await axios.post(
+        "https://admin-server-notification.vercel.app/send-notifications",
+        {
+          notificationTitle,
+          notificationMessage,
+          expoPushTokens,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error sending notifications:", error);
+    }
   };
 
   const handleAddPost = async () => {
@@ -59,6 +96,26 @@ const AddNewPost = () => {
         alert("Post created successfully");
         setShowSuccessPopup(true);
 
+        // Send notification
+        const usersRef = collection(db, "Users");
+        const q = query(usersRef, where("language", "==", selectedLanguage));
+        const querySnapshot = await getDocs(q);
+
+        const expoPushTokens = [];
+
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          if (userData.expoPushToken) {
+            expoPushTokens.push(userData.expoPushToken);
+          }
+        });
+
+        if (expoPushTokens.length === 0) {
+          console.log("No users to send notifications to.");
+        } else {
+          sendNotification(title, content, expoPushTokens);
+        }
+
         // Clear form inputs
         setTitle("");
         setContent("");
@@ -73,6 +130,7 @@ const AddNewPost = () => {
       alert("Please enter title, content, and select a language.");
     }
   };
+
   return (
     <div className={styles.container}>
       <h2>Add New Post</h2>

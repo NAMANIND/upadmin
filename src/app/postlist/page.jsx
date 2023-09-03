@@ -80,10 +80,20 @@ const Posts = () => {
       const postRef = doc(db, selectedLanguage, selectedPostId);
       const postSnapshot = await getDoc(postRef);
       const postData = postSnapshot.data();
-      const postImageRef = ref(storage, postData.imageUrl);
 
-      if (postImageRef) {
-        await deleteObject(postImageRef);
+      if (postData.imageUrl && postData.imageUrl !== "") {
+        // Extract the path from the imageUrl
+        const imagePath = postData.imageUrl;
+
+        // Create a reference to the object you want to delete
+        const postImageRef = ref(storage, imagePath);
+
+        try {
+          // Delete the object from Firebase Storage
+          await deleteObject(postImageRef);
+        } catch (error) {
+          console.error("Error deleting image from Firebase Storage:", error);
+        }
       }
 
       // delete post from firestore

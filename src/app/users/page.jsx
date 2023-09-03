@@ -103,10 +103,19 @@ const Users = () => {
       const userData = userSnapshot.data();
       const userImageRef = ref(storage, userData.imageUrl);
 
-      if (userData.imageUrl) {
-        await deleteObject(userImageRef);
+      // Check if userData.imageUrl exists and is not empty
+      if (userData.imageUrl && userData.imageUrl !== "") {
+        try {
+          // Delete the user's image from Firebase Storage
+          await deleteObject(userImageRef);
+          // You can also update the user's data in Firestore to remove the imageUrl, if needed
+        } catch (error) {
+          console.error(
+            "Error deleting user's image from Firebase Storage:",
+            error
+          );
+        }
       }
-
       // delete user from firestore
 
       await deleteDoc(doc(db, "Users", selectedUserId));
