@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { db } from "../../utils/next.config";
+import { db, storage } from "../../utils/next.config";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   query,
@@ -11,6 +11,8 @@ import {
   collection,
   getDoc,
 } from "firebase/firestore";
+
+import { deleteObject, ref } from "firebase/storage";
 import {
   Modal,
   Button,
@@ -74,6 +76,18 @@ const Posts = () => {
 
   const handleDelete = async () => {
     try {
+      // delet post image from storage
+      const postRef = doc(db, selectedLanguage, selectedPostId);
+      const postSnapshot = await getDoc(postRef);
+      const postData = postSnapshot.data();
+      const postImageRef = ref(storage, postData.imageUrl);
+
+      if (postImageRef) {
+        await deleteObject(postImageRef);
+      }
+
+      // delete post from firestore
+
       await deleteDoc(doc(db, selectedLanguage, selectedPostId));
       setPosts(posts.filter((post) => post.id !== selectedPostId));
       setDeleteConfirmOpen(false);

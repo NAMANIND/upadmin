@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { db } from "../../utils/next.config";
+import { db, storage } from "../../utils/next.config";
 import {
   collection,
   query,
@@ -8,7 +8,9 @@ import {
   deleteDoc,
   doc,
   setDoc,
+  getDoc,
 } from "firebase/firestore";
+import { deleteObject, ref } from "firebase/storage";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Modal,
@@ -95,6 +97,18 @@ const Users = () => {
 
   const handleDelete = async () => {
     try {
+      // delete user image from storage
+      const userRef = doc(db, "Users", selectedUserId);
+      const userSnapshot = await getDoc(userRef);
+      const userData = userSnapshot.data();
+      const userImageRef = ref(storage, userData.imageUrl);
+
+      if (userData.imageUrl) {
+        await deleteObject(userImageRef);
+      }
+
+      // delete user from firestore
+
       await deleteDoc(doc(db, "Users", selectedUserId));
       setUsers(users.filter((user) => user.id !== selectedUserId));
       setConfirmDelete(false);
