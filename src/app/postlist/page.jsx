@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { db, storage } from "../../utils/next.config";
 import { DataGrid } from "@mui/x-data-grid";
@@ -10,6 +11,8 @@ import {
   updateDoc,
   collection,
   getDoc,
+  getDocs,
+  orderBy,
 } from "firebase/firestore";
 
 import { deleteObject, ref } from "firebase/storage";
@@ -27,14 +30,15 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid,
+  Checkbox,
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SearchIcon from "@mui/icons-material/Search";
+import VisibilityIcon from "@mui/icons-material/Visibility"; // Import the eye icon
 
-import styles from "./page.module.css"; // Import the CSS module
+import styles from "./page.module.css";
 
 const Posts = () => {
   const [posts, setPosts] = useState([]);
@@ -45,19 +49,18 @@ const Posts = () => {
   const [editedImage, setEditedImage] = useState("");
   const [selectedPostId, setSelectedPostId] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState(""); // Add this line
-  const filteredPosts = posts.filter(
-    (post) =>
-      (post.title &&
-        post.title.toLowerCase().includes(searchValue.toLowerCase())) ||
-      (post.content &&
-        post.content.toLowerCase().includes(searchValue.toLowerCase())) ||
-      (post.imageUrl &&
-        post.imageUrl.toLowerCase().includes(searchValue.toLowerCase()))
-  );
+  const [searchValue, setSearchValue] = useState("");
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewedPost, setPreviewedPost] = useState(null);
+
+  const [selectedPostIds, setSelectedPostIds] = useState([]);
 
   useEffect(() => {
-    const q = query(collection(db, selectedLanguage));
+    const q = query(
+      collection(db, selectedLanguage),
+      orderBy("timestamp", "desc") // Order by timestamp in descending order
+    );
+
     const unsub = onSnapshot(q, (querySnapshot) => {
       const postsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -68,41 +71,48 @@ const Posts = () => {
 
     return () => unsub();
   }, [selectedLanguage]);
-
-  const handleDeleteConfirmation = (postId) => {
-    setSelectedPostId(postId);
-    setDeleteConfirmOpen(true);
+  const toggleSelectPost = (postId) => {
+    if (selectedPostIds.includes(postId)) {
+      setSelectedPostIds(selectedPostIds.filter((id) => id !== postId));
+    } else {
+      setSelectedPostIds([...selectedPostIds, postId]);
+    }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteSelected = async () => {
     try {
-      // delet post image from storage
-      const postRef = doc(db, selectedLanguage, selectedPostId);
-      const postSnapshot = await getDoc(postRef);
-      const postData = postSnapshot.data();
+      for (const postId of selectedPostIds) {
+        const postRef = doc(db, selectedLanguage, postId);
+        const postSnapshot = await getDoc(postRef);
+        const postData = postSnapshot.data();
 
-      if (postData.imageUrl && postData.imageUrl !== "") {
-        // Extract the path from the imageUrl
-        const imagePath = postData.imageUrl;
+        if (postData.imageUrl && postData.imageUrl !== "") {
+          const imagePath = postData.imageUrl;
+          const postImageRef = ref(storage, imagePath);
 
-        // Create a reference to the object you want to delete
-        const postImageRef = ref(storage, imagePath);
-
-        try {
-          // Delete the object from Firebase Storage
-          await deleteObject(postImageRef);
-        } catch (error) {
-          console.error("Error deleting image from Firebase Storage:", error);
+          try {
+            await deleteObject(postImageRef);
+          } catch (error) {
+            console.error("Error deleting image from Firebase Storage:", error);
+          }
         }
+
+        await deleteDoc(doc(db, selectedLanguage, postId));
       }
 
-      // delete post from firestore
+      setSelectedPostIds([]);
 
-      await deleteDoc(doc(db, selectedLanguage, selectedPostId));
-      setPosts(posts.filter((post) => post.id !== selectedPostId));
+      const q = query(collection(db, selectedLanguage));
+      const querySnapshot = await getDocs(q);
+      const postsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPosts(postsData);
+
       setDeleteConfirmOpen(false);
     } catch (error) {
-      console.error("Error deleting post:", error);
+      console.error("Error deleting posts:", error);
     }
   };
 
@@ -135,7 +145,6 @@ const Posts = () => {
       }
 
       const postRef = doc(db, selectedLanguage, selectedPostId);
-      console.log("postRef", postRef);
       const postSnapshot = await getDoc(postRef);
 
       if (!postSnapshot.exists()) {
@@ -157,10 +166,26 @@ const Posts = () => {
     }
   };
 
+  const handlePreview = (post) => {
+    setPreviewedPost(post);
+    setPreviewModalOpen(true);
+  };
+
   const columns = [
+    {
+      field: "select",
+      headerName: "Select",
+      width: 100,
+      renderCell: (params) => (
+        <Checkbox
+          checked={selectedPostIds.includes(params.row.id)}
+          onChange={() => toggleSelectPost(params.row.id)}
+        />
+      ),
+    },
     { field: "title", headerName: "Title", width: 200 },
-    { field: "content", headerName: "Content", width: 300 },
-    { field: "imageUrl", headerName: "Image URL", width: 300 },
+    { field: "content", headerName: "Content", width: 200 },
+    { field: "imageUrl", headerName: "Image URL", width: 200 },
     {
       field: "timestamp",
       headerName: "Timestamp",
@@ -173,21 +198,15 @@ const Posts = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 150,
+      width: 200,
       renderCell: (params) => (
         <>
           <IconButton onClick={() => handleEditPost(params.row)} size="small">
             <EditIcon />
           </IconButton>
-
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={() => handleDeleteConfirmation(params.row.id)}
-          >
-            Delete
-          </Button>
+          <IconButton onClick={() => handlePreview(params.row)} size="small">
+            <VisibilityIcon />
+          </IconButton>
         </>
       ),
     },
@@ -196,43 +215,50 @@ const Posts = () => {
   return (
     <div className={styles.container}>
       <h2>Post List</h2>
-
       <div className={styles.gridContainer}>
-        <FormControl
-          className={styles.languageSelector}
-          size="small"
-          variant="outlined"
-        >
-          <InputLabel className={styles.inputLabel}>Language</InputLabel>
-          <Select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
+        <div>
+          <FormControl
+            className={styles.languageSelector}
+            size="small"
+            variant="outlined"
           >
-            <MenuItem value="English">English</MenuItem>
-            <MenuItem value="Hindi">Hindi</MenuItem>
-            <MenuItem value="Arabic">Arabic</MenuItem>
-            {/* Add more language options as needed */}
-          </Select>
-        </FormControl>
-        <TextField
-          label="Search"
+            <InputLabel className={styles.inputLabel}>Language</InputLabel>
+            <Select
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+            >
+              <MenuItem value="English">English</MenuItem>
+              <MenuItem value="Hindi">Hindi</MenuItem>
+              <MenuItem value="Arabic">Arabic</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="Search"
+            variant="outlined"
+            size="small"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            InputProps={{
+              endAdornment: <SearchIcon className={styles.searchIcon} />,
+            }}
+          />
+        </div>
+        <Button
           variant="outlined"
-          size="small"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          InputProps={{
-            endAdornment: <SearchIcon className={styles.searchIcon} />,
-          }}
-        />
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={() => setDeleteConfirmOpen(true)}
+          disabled={selectedPostIds.length === 0}
+        >
+          Delete Selected
+        </Button>
       </div>
-
       <DataGrid
-        rows={filteredPosts}
+        rows={posts}
         className={styles.dataGrid}
         columns={columns}
         scrollbarSize={5}
       />
-
       <Modal
         open={openModal}
         onClose={handleModalClose}
@@ -274,7 +300,6 @@ const Posts = () => {
           </Button>
         </div>
       </Modal>
-
       <Dialog
         open={Boolean(deleteConfirmOpen)}
         onClose={() => setDeleteConfirmOpen(false)}
@@ -283,15 +308,65 @@ const Posts = () => {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this post?
+            Are you sure you want to delete the selected posts?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteConfirmOpen(false)} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error">
+          <Button onClick={handleDeleteSelected} color="error">
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        fullWidth
+      >
+        <DialogTitle>Post Preview</DialogTitle>
+        <DialogContent>
+          {previewedPost && (
+            <div>
+              <h3>{previewedPost.title}</h3>
+              <div
+                dangerouslySetInnerHTML={{ __html: previewedPost.content }}
+              />
+              {previewedPost.imageUrl && previewedPost.imageUrl !== "" && (
+                <div>
+                  {previewedPost.imageUrl.includes(".mp4") ? (
+                    <div style={{ position: "relative", paddingTop: "56.25%" }}>
+                      {/* 16:9 aspect ratio container */}
+                      <video
+                        controls
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                        }}
+                      >
+                        <source src={previewedPost.imageUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  ) : (
+                    <img
+                      src={previewedPost.imageUrl}
+                      alt="Post Preview"
+                      style={{ maxWidth: "100%" }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewModalOpen(false)} color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>

@@ -77,7 +77,7 @@ const Home = () => {
   };
 
   return (
-    <div style={{ width: "100%", padding: "20px" }}>
+    <div style={{ width: "95%", padding: "20px" }}>
       <h2>Notifications</h2>
       <div
         style={{

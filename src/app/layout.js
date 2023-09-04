@@ -30,8 +30,9 @@ export default function RootLayout({ children }) {
           style={{
             display: "flex",
             flexDirection: "column",
-            width: "100vw",
+            width: "100%",
             height: "100vh",
+            overflow: "hidden",
           }}
         >
           {isLoggedIn ? (
@@ -46,7 +47,14 @@ export default function RootLayout({ children }) {
                 }}
               >
                 <Menu />
-                {children}
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto", // Make it scrollable if content exceeds parent's height
+                  }}
+                >
+                  {children}
+                </div>
               </div>
             </>
           ) : (

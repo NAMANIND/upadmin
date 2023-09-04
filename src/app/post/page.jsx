@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
@@ -17,24 +16,41 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "../../utils/next.config";
 import styles from "./page.module.css";
 import axios from "axios";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
 });
+
 const AddNewPost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [media, setMedia] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loading indicator
+  const [uploadStatus, setUploadStatus] = useState(""); // Upload status message
 
   const handleMediaUpload = async (file) => {
     const storage = getStorage();
     const storageRef = ref(storage, `${file.name}`);
-    await uploadBytes(storageRef, file);
-    const mediaUrl = await getDownloadURL(storageRef);
-    return mediaUrl;
+    const uploadTask = uploadBytes(storageRef, file);
+
+    return new Promise((resolve, reject) => {
+      uploadTask
+        .then(async (snapshot) => {
+          // Upload completed successfully
+          const mediaUrl = await getDownloadURL(storageRef);
+          resolve(mediaUrl);
+        })
+        .catch((error) => {
+          console.error("Error uploading media:", error);
+          reject(error);
+        })
+        .finally(() => {
+          setIsLoading(false); // Set loading to false when upload is complete
+        });
+    });
   };
 
   const sendNotification = async (
@@ -46,8 +62,7 @@ const AddNewPost = () => {
       notiMessage
         .replace(/<[^>]*>/g, "") // Remove HTML tags
         .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
-        .substring(0, 80) + "..."; // Trim to 80 characters
-
+        .substring(0, 80) + "..."; // Limit notification message to 80 characters
     try {
       const response = await axios.post(
         "https://admin-server-notification.vercel.app/send-notifications",
@@ -74,10 +89,13 @@ const AddNewPost = () => {
       let mediaUrl = null;
 
       if (media) {
-        mediaUrl = await handleMediaUpload(media);
-      }
+        setIsLoading(true); // Set loading to true when upload starts
+        setUploadStatus("Uploading..."); // Update upload status
 
-      setIsLoading(true);
+        mediaUrl = await handleMediaUpload(media);
+
+        setUploadStatus(""); // Clear upload status after successful upload
+      }
 
       try {
         const postId = uuidv4();
@@ -90,13 +108,17 @@ const AddNewPost = () => {
           timestamp: serverTimestamp(),
         };
 
+        setTitle("");
+        setContent("");
+        setMedia(null);
+        setSelectedLanguage("");
         await setDoc(postDocRef, postData, { merge: true });
 
-        console.log("Post created successfully");
         alert("Post created successfully");
+        // Clear form inputs after post creation
+
         setShowSuccessPopup(true);
 
-        // Send notification
         const usersRef = collection(db, "Users");
         const q = query(usersRef, where("language", "==", selectedLanguage));
         const querySnapshot = await getDocs(q);
@@ -115,12 +137,6 @@ const AddNewPost = () => {
         } else {
           sendNotification(title, content, expoPushTokens);
         }
-
-        // Clear form inputs
-        setTitle("");
-        setContent("");
-        setMedia(null);
-        setSelectedLanguage("");
       } catch (error) {
         console.error("Error creating post:", error);
       } finally {
@@ -134,26 +150,22 @@ const AddNewPost = () => {
   return (
     <div className={styles.container}>
       <h2>Add New Post</h2>
-      <div className={styles["language-selector"]}>
-        <button
-          onClick={() => setSelectedLanguage("English")}
-          className={selectedLanguage === "English" ? styles.active : ""}
+      <FormControl
+        fullWidth
+        variant="outlined"
+        className={styles["language-selector"]}
+      >
+        <InputLabel>Select Language</InputLabel>
+        <Select
+          value={selectedLanguage}
+          onChange={(e) => setSelectedLanguage(e.target.value)}
+          label="Select Language"
         >
-          English
-        </button>
-        <button
-          onClick={() => setSelectedLanguage("Hindi")}
-          className={selectedLanguage === "Hindi" ? styles.active : ""}
-        >
-          Hindi
-        </button>
-        <button
-          onClick={() => setSelectedLanguage("Arabic")}
-          className={selectedLanguage === "Arabic" ? styles.active : ""}
-        >
-          Arabic
-        </button>
-      </div>
+          <MenuItem value="English">English</MenuItem>
+          <MenuItem value="Hindi">Hindi</MenuItem>
+          <MenuItem value="Arabic">Arabic</MenuItem>
+        </Select>
+      </FormControl>
       <input
         type="text"
         placeholder="Title"
@@ -186,6 +198,7 @@ const AddNewPost = () => {
                   alt="Selected Media"
                   width={100}
                   height={100}
+                  objectFit="cover"
                 />
               )}
               {media.type.startsWith("video/") && (
@@ -193,11 +206,13 @@ const AddNewPost = () => {
                   <source src={URL.createObjectURL(media)} type={media.type} />
                 </video>
               )}
+              <p>{media.name}</p> {/* Display the name of the uploaded file */}
             </div>
           )}
         </div>
         <button className={styles["add-post-button"]} onClick={handleAddPost}>
-          {isLoading ? "Adding..." : "Add Post"}
+          {isLoading ? "Uploading..." : "Send"}{" "}
+          {/* Dynamically change button text */}
         </button>
       </div>
     </div>

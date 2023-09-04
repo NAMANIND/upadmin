@@ -9,6 +9,8 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 import { DataGrid } from "@mui/x-data-grid";
@@ -16,17 +18,13 @@ import {
   Modal,
   Button,
   TextField,
-  Paper,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Grid,
+  Alert,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -121,6 +119,7 @@ const Users = () => {
       await deleteDoc(doc(db, "Users", selectedUserId));
       setUsers(users.filter((user) => user.id !== selectedUserId));
       setConfirmDelete(false);
+      alert("User deleted successfully");
     } catch (error) {
       console.error("Error deleting user:", error);
     }
@@ -133,6 +132,18 @@ const Users = () => {
     }
 
     try {
+      // Check if a user with the same employee ID already exists
+      const userRef = query(
+        collection(db, "Users"),
+        where("employeeId", "==", newUserEmployeeId)
+      );
+      const userSnapshot = await getDocs(userRef);
+
+      if (!userSnapshot.empty) {
+        alert("A user with the same Employee ID already exists.");
+        return;
+      }
+
       const UserId = uuidv4();
       const userDocRef = doc(db, "Users", UserId);
       const userData = {
@@ -143,12 +154,13 @@ const Users = () => {
       };
 
       await setDoc(userDocRef, userData, { merge: true });
-      console.log("User created successfully");
 
       setNewUserName("");
       setNewUserEmployeeId("");
       setNewUserTrade(""); // Updated to use "Trade" field
       setOpenModal(false);
+
+      alert("User added successfully");
     } catch (error) {
       console.error("Error adding user:", error);
     }
