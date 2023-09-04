@@ -5,8 +5,8 @@
 }
 
 .language-selector {
-  margin-bottom: 20px;
-  width: 200px;
+  margin-bottom: 20px !important;
+  width: 200px !important;
 }
 
 .language-selector button {
