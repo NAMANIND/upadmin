@@ -33,7 +33,7 @@
 
 .icon {
   margin-right: 10px;
-  font-size: 28px;
+  font-size: 28px !important;
 }
 .menu-text {
   display: inline-block;
