@@ -166,6 +166,33 @@ const Posts = () => {
     }
   };
 
+  const togglePostStatus = async (postId, isDisabled) => {
+    try {
+      const postRef = doc(db, selectedLanguage, postId);
+      const postSnapshot = await getDoc(postRef);
+      const postData = postSnapshot.data();
+
+      if (!postSnapshot.exists()) {
+        console.error(`Document with ID ${postId} not found.`);
+        return;
+      }
+
+      // Update the isDisabled field in Firestore
+      await updateDoc(postRef, {
+        isDisabled: !isDisabled, // Toggle the status
+      });
+
+      const q = query(collection(db, selectedLanguage));
+      const querySnapshot = await getDocs(q);
+      const postsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPosts(postsData);
+    } catch (error) {
+      console.error("Error updating post status:", error);
+    }
+  };
   const handlePreview = (post) => {
     setPreviewedPost(post);
     setPreviewModalOpen(true);
@@ -186,6 +213,7 @@ const Posts = () => {
     { field: "title", headerName: "Title", width: 200 },
     { field: "content", headerName: "Content", width: 200 },
     { field: "imageUrl", headerName: "Image URL", width: 200 },
+
     {
       field: "timestamp",
       headerName: "Timestamp",
@@ -198,7 +226,7 @@ const Posts = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 200,
+      width: 100,
       renderCell: (params) => (
         <>
           <IconButton onClick={() => handleEditPost(params.row)} size="small">
@@ -208,6 +236,17 @@ const Posts = () => {
             <VisibilityIcon />
           </IconButton>
         </>
+      ),
+    },
+    {
+      field: "isDisabled",
+      headerName: "Status",
+      width: 100,
+      renderCell: (params) => (
+        <Checkbox
+          checked={!params.value} // Invert the status for the checkbox
+          onChange={() => togglePostStatus(params.row.id, params.value)}
+        />
       ),
     },
   ];

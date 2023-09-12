@@ -16,7 +16,7 @@ const Navbar = () => {
     >
       <div>
         <Image
-          src="/acplus.jpg"
+          src="/Assent.svg"
           alt="Company logo"
           width={200} // Set your desired width
           height={51} // Set your desired height

@@ -70,7 +70,7 @@ export default function RootLayout({ children }) {
               }}
             >
               <Image
-                src="/acplus.jpg"
+                src="/Assent.svg"
                 alt="Company logo"
                 width={200} // Set your desired width
                 height={50} // Set your desired height
