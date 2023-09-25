@@ -58,8 +58,7 @@ const Home = () => {
     }
 
     try {
-      const serverKey =
-        "AAAA4ILnbBY:APA91bGetn6tLADoYieYyzxlzFg-8BkqXJa6-JvbAoNe3o7c4-b2B7gxeD0drVmPl8utu22VUQN09dLbjSLNS_OcIe7NFA7qx1WBZPISAt2bply5Iw3mk31PM4HJjqGhdiDu3g8fInU7"; // Replace with your Firebase project's server key
+      const serverKey = process.env.NEXT_PUBLIC_FIREBASE_SERVER_KEY; // Replace with your Firebase project's server key
       const headers = {
         "Content-Type": "application/json",
         Authorization: `key=${serverKey}`,
