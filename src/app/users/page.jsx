@@ -225,7 +225,7 @@ const Users = () => {
           <TextField
             label="Employee ID"
             value={newUserEmployeeId}
-            onChange={(e) => setNewUserEmployeeId(e.target.value)}
+            onChange={(e) => setNewUserEmployeeId(e.target.value.toUpperCase())}
             required
             fullWidth
             margin="dense"

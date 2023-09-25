@@ -63,18 +63,36 @@ const AddNewPost = () => {
         .replace(/<[^>]*>/g, "") // Remove HTML tags
         .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
         .substring(0, 80) + "..."; // Limit notification message to 80 characters
+
+    if (expoPushTokens.length === 0) {
+      alert("No users to send notifications to.");
+      return;
+    }
+
     try {
+      const serverKey =
+        "AAAA4ILnbBY:APA91bGetn6tLADoYieYyzxlzFg-8BkqXJa6-JvbAoNe3o7c4-b2B7gxeD0drVmPl8utu22VUQN09dLbjSLNS_OcIe7NFA7qx1WBZPISAt2bply5Iw3mk31PM4HJjqGhdiDu3g8fInU7"; // Replace with your Firebase project's server key
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `key=${serverKey}`,
+      };
+
+      // Construct the notification payload
+      const notification = {
+        title: notificationTitle,
+        body: notificationMessage,
+      };
+
+      const fcmMessage = {
+        notification,
+        registration_ids: expoPushTokens, // An array of FCM tokens to send notifications to
+      };
+
       const response = await axios.post(
-        "https://admin-server-notification.vercel.app/send-notifications",
+        "https://fcm.googleapis.com/fcm/send",
+        fcmMessage,
         {
-          notificationTitle,
-          notificationMessage,
-          expoPushTokens,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
         }
       );
 
