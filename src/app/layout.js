@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import Menu from "../components/menu/Menu";
 import Navbar from "../components/navbar/Navbar";
 import "./globals.css";
 
-import Menu from "../components/menu/Menu";
 import { TextField, Button, FormControl } from "@mui/material";
 import Image from "next/image";
 
