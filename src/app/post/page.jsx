@@ -60,9 +60,9 @@ const AddNewPost = () => {
   ) => {
     const notificationMessage =
       notiMessage
-        .replace(/<[^>]*>/g, "") // Remove HTML tags
+        .replace(/<[^>]*>/g, " ") // Remove HTML tags
         .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
-        .substring(0, 80) + "..."; // Limit notification message to 80 characters
+        .substring(0, 190) + "..."; // Limit notification message to 80 characters
 
     if (expoPushTokens.length === 0) {
       alert("No users to send notifications to.");
@@ -179,8 +179,8 @@ const AddNewPost = () => {
           label="Select Language"
         >
           <MenuItem value="English">English</MenuItem>
-          <MenuItem value="Hindi">Hindi</MenuItem>
-          <MenuItem value="Arabic">Arabic</MenuItem>
+          <MenuItem value="हिंदी">हिंदी</MenuItem>
+          <MenuItem value="বাংলা">বাংলা</MenuItem>
         </Select>
       </FormControl>
       <input

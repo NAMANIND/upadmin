@@ -267,8 +267,8 @@ const Posts = () => {
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
               <MenuItem value="English">English</MenuItem>
-              <MenuItem value="Hindi">Hindi</MenuItem>
-              <MenuItem value="Arabic">Arabic</MenuItem>
+              <MenuItem value="हिंदी">हिंदी</MenuItem>
+              <MenuItem value="বাংলা">বাংলা</MenuItem>
             </Select>
           </FormControl>
           <TextField
