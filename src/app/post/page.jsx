@@ -195,9 +195,6 @@ const AddNewPost = () => {
           value={content}
           onChange={(newContent) => setContent(newContent)}
           tabIndex={1}
-          // config={{
-          //   uploader: { insertImageAsBase64URI: true },
-          // }}
         />
       </div>
       <div className={styles.picker}>
