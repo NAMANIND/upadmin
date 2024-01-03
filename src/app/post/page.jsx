@@ -58,11 +58,18 @@ const AddNewPost = () => {
     notiMessage,
     expoPushTokens
   ) => {
+    // const notificationMessage =
+    //   notiMessage
+    //     .replace(/<[^>]*>/g, " ") // Remove HTML tags
+    //     .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
+    //     .substring(0, 190) + "..."; // Limit notification message to 80 characters
+
     const notificationMessage =
       notiMessage
-        .replace(/<[^>]*>/g, " ") // Remove HTML tags
-        .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
-        .substring(0, 190) + "..."; // Limit notification message to 80 characters
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .substring(0, 190 - (notiMessage.length > 109 ? 3 : 0)) +
+      (notiMessage.length > 109 ? "..." : "");
 
     if (expoPushTokens.length === 0) {
       alert("No users to send notifications to.");

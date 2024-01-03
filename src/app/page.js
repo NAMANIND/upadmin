@@ -66,11 +66,19 @@ const Home = () => {
 
       // Construct the notification payload
 
+      // const notificationMessagelimit =
+      //   notificationMessage
+      //     .replace(/<[^>]*>/g, " ") // Remove HTML tags
+      //     .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
+      //     .substring(0, 190) + "...";
+
       const notificationMessagelimit =
         notificationMessage
-          .replace(/<[^>]*>/g, " ") // Remove HTML tags
-          .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
-          .substring(0, 190) + "...";
+          .replace(/<[^>]*>/g, " ")
+          .replace(/&nbsp;/g, " ")
+          .substring(0, 190 - (notificationMessage.length > 109 ? 3 : 0)) +
+        (notificationMessage.length > 109 ? "..." : "");
+
       const notification = {
         title: notificationTitle,
         body: notificationMessagelimit,
