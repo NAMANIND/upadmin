@@ -11,6 +11,8 @@ import {
   getDoc,
   getDocs,
   where,
+  serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 import { DataGrid } from "@mui/x-data-grid";
@@ -23,14 +25,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid,
-  Alert,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./page.module.css"; // Import the CSS module
+import { Logout } from "@mui/icons-material";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -70,6 +71,27 @@ const Users = () => {
     { field: "name", headerName: "Name", width: 200 },
     { field: "trade", headerName: "Trade", width: 150 }, // Updated to use "Trade" field
     {
+      field: "logout",
+      headerName: "Logout",
+      width: 120,
+      renderCell: (params) => (
+        <>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<Logout />}
+            disabled={
+              !params.row.expoPushToken ||
+              params.row.expoPushToken.trim() === ""
+            }
+            onClick={() => handleLogout(params.id)}
+          >
+            Logout
+          </Button>
+        </>
+      ),
+    },
+    {
       field: "actions",
       headerName: "Actions",
       width: 120,
@@ -87,6 +109,16 @@ const Users = () => {
       ),
     },
   ];
+
+  const handleLogout = async (userId) => {
+    try {
+      const userRef = doc(db, "Users", userId);
+      await updateDoc(userRef, { expoPushToken: "" });
+      alert("User logged out successfully.");
+    } catch (error) {
+      console.error("Error logging out the user.", error);
+    }
+  };
 
   const handleDeleteConfirmation = (userId) => {
     setSelectedUserId(userId);
@@ -151,6 +183,7 @@ const Users = () => {
         name: newUserName,
         employeeId: newUserEmployeeId,
         trade: newUserTrade, // Updated to use "Trade" field
+        timestamp: serverTimestamp(),
       };
 
       await setDoc(userDocRef, userData, { merge: true });
