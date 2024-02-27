@@ -32,7 +32,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./page.module.css"; // Import the CSS module
 import { Logout } from "@mui/icons-material";
-import FileUpload from "../../components/fileupload/Fileupload";
+// import FileUpload from "../../components/fileupload/Fileupload";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
