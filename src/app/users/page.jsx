@@ -25,6 +25,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -32,7 +34,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./page.module.css"; // Import the CSS module
 import { Logout } from "@mui/icons-material";
-// import FileUpload from "../../components/fileupload/Fileupload";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -43,16 +44,8 @@ const Users = () => {
   const [newUserEmployeeId, setNewUserEmployeeId] = useState("");
   const [newUserTrade, setNewUserTrade] = useState(""); // Updated to use "Trade" field
 
-  const [searchValue, setSearchValue] = useState(""); // Add this line
-  const filteredUsers = users.filter(
-    (user) =>
-      (user.name &&
-        user.name.toLowerCase().includes(searchValue.toLowerCase())) ||
-      (user.employeeId &&
-        user.employeeId.toLowerCase().includes(searchValue.toLowerCase())) ||
-      (user.trade && // Updated to use "trade" field
-        user.trade.toLowerCase().includes(searchValue.toLowerCase()))
-  );
+  const [searchValue, setSearchValue] = useState("");
+  const [showLoggedInUsers, setShowLoggedInUsers] = useState(false); // State to toggle showing logged-in users
 
   useEffect(() => {
     const q = query(collection(db, "Users"));
@@ -67,29 +60,30 @@ const Users = () => {
     return () => unsub();
   }, []);
 
+  const handleToggleUsers = () => {
+    setShowLoggedInUsers(!showLoggedInUsers);
+  };
+
   const columns = [
     { field: "employeeId", headerName: "Employee ID", width: 250 },
     { field: "name", headerName: "Name", width: 200 },
-    { field: "trade", headerName: "Trade", width: 150 }, // Updated to use "Trade" field
+    { field: "trade", headerName: "Trade", width: 150 },
     {
       field: "logout",
       headerName: "Logout",
       width: 120,
       renderCell: (params) => (
-        <>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Logout />}
-            disabled={
-              !params.row.expoPushToken ||
-              params.row.expoPushToken.trim() === ""
-            }
-            onClick={() => handleLogout(params.id)}
-          >
-            Logout
-          </Button>
-        </>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<Logout />}
+          disabled={
+            !params.row.expoPushToken || params.row.expoPushToken.trim() === ""
+          }
+          onClick={() => handleLogout(params.id)}
+        >
+          Logout
+        </Button>
       ),
     },
     {
@@ -97,21 +91,43 @@ const Users = () => {
       headerName: "Actions",
       width: 120,
       renderCell: (params) => (
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={() => handleDeleteConfirmation(params.id)}
+        >
+          Delete
+        </Button>
+      ),
+    },
+    {
+      field: "showLoggedInUsers",
+      headerName: "Show Logged-In Users",
+      width: 200,
+      headerAlign: "center",
+      sortable: false,
+      filterable: false,
+      renderHeader: () => (
         <>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={() => handleDeleteConfirmation(params.id)}
-          >
-            Delete
-          </Button>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showLoggedInUsers}
+                onChange={handleToggleUsers}
+                color="primary"
+              />
+            }
+            label={showLoggedInUsers ? "Logged-In Users" : "All Users"}
+          />
+          {/* Rest of your component code */}
         </>
       ),
     },
   ];
 
   const handleLogout = async (userId) => {
+    console.log("Logging out user with ID:", userId);
     try {
       const userRef = doc(db, "Users", userId);
       await updateDoc(userRef, { expoPushToken: "" });
@@ -183,7 +199,7 @@ const Users = () => {
         userid: UserId,
         name: newUserName,
         employeeId: newUserEmployeeId,
-        trade: newUserTrade, // Updated to use "Trade" field
+        trade: newUserTrade,
         timestamp: serverTimestamp(),
       };
 
@@ -191,7 +207,7 @@ const Users = () => {
 
       setNewUserName("");
       setNewUserEmployeeId("");
-      setNewUserTrade(""); // Updated to use "Trade" field
+      setNewUserTrade("");
       setOpenModal(false);
 
       alert("User added successfully");
@@ -204,10 +220,17 @@ const Users = () => {
     if (!event.target.closest(".modal-content")) {
       setNewUserName("");
       setNewUserEmployeeId("");
-      setNewUserTrade(""); // Updated to use "Trade" field
+      setNewUserTrade("");
       setOpenModal(false);
     }
   };
+
+  // Filter users based on showLoggedInUsers state
+  const filteredUsers = showLoggedInUsers
+    ? users.filter(
+        (user) => user.expoPushToken && user.expoPushToken.trim() !== ""
+      )
+    : users;
 
   return (
     <div className={styles.container}>
@@ -221,6 +244,7 @@ const Users = () => {
         >
           Add User
         </Button>
+
         <TextField
           label="Search"
           variant="outlined"
@@ -273,9 +297,9 @@ const Users = () => {
             margin="dense"
           />
           <TextField
-            label="Trade" // Updated to use "Trade" field
-            value={newUserTrade} // Updated to use "Trade" field
-            onChange={(e) => setNewUserTrade(e.target.value)} // Updated to use "Trade" field
+            label="Trade"
+            value={newUserTrade}
+            onChange={(e) => setNewUserTrade(e.target.value)}
             required
             fullWidth
             margin="dense"
@@ -307,7 +331,6 @@ const Users = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* <FileUpload /> */}
     </div>
   );
 };

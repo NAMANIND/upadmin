@@ -202,9 +202,11 @@ const AddNewPost = () => {
           value={content}
           onChange={(newContent) => setContent(newContent)}
           tabIndex={1}
+          config={{
+            // Add the config prop to customize the editor settings
+            askBeforePasteHTML: false, // Disable "Keep as HTML?" option when pasting
+          }}
         />
-      </div>
-      <div className={styles.picker}>
         <div className={styles["media-upload"]}>
           <label className={styles["media-label"]}>
             Upload Media (Image/Video)

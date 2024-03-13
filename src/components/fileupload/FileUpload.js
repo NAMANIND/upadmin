@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { db } from "../../utils/next.config";
-import { collection, doc, setDoc } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Button, CircularProgress } from "@mui/material";
+import { v4 as uuidv4 } from "uuid";
 
 const FileUpload = () => {
   const [file, setFile] = useState(null);
@@ -41,15 +42,19 @@ const FileUpload = () => {
 
           const [employeeId, name, trade] = row;
 
+          // const docRef = doc(collection(db, "Users"));
+
+          const UserId = uuidv4();
+          const docRef = doc(db, "Users", UserId);
           const userData = {
-            employeeId,
-            name,
-            trade,
-            timestamp: new Date(),
+            userid: UserId,
+            name: name,
+            employeeId: employeeId,
+            trade: trade,
+            timestamp: serverTimestamp(),
           };
 
-          const docRef = doc(collection(db, "Users"));
-          await setDoc(docRef, userData);
+          await setDoc(docRef, userData, { merge: true });
 
           uploadedCount++;
           const uploadProgress = (uploadedCount / totalRows) * 100;
