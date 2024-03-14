@@ -225,12 +225,18 @@ const Users = () => {
     }
   };
 
-  // Filter users based on showLoggedInUsers state
-  const filteredUsers = showLoggedInUsers
-    ? users.filter(
-        (user) => user.expoPushToken && user.expoPushToken.trim() !== ""
-      )
-    : users;
+  // Filter users based on showLoggedInUsers state and searchValue
+  const filteredUsers = users.filter(
+    (user) =>
+      (showLoggedInUsers
+        ? user.expoPushToken && user.expoPushToken.trim() !== ""
+        : true) &&
+      (searchValue
+        ? user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+          user.employeeId.toLowerCase().includes(searchValue.toLowerCase()) ||
+          user.trade.toLowerCase().includes(searchValue.toLowerCase())
+        : true)
+  );
 
   return (
     <div className={styles.container}>
