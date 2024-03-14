@@ -66,8 +66,8 @@ const AddNewPost = () => {
 
     const notificationMessage =
       notiMessage
-        .replace(/<[^>]*>/g, " ")
-        .replace(/&nbsp;/g, " ")
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, "")
         .substring(0, 190 - (notiMessage.length > 109 ? 3 : 0)) +
       (notiMessage.length > 109 ? "..." : "");
 

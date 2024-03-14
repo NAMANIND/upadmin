@@ -74,8 +74,8 @@ const Home = () => {
 
       const notificationMessagelimit =
         notificationMessage
-          .replace(/<[^>]*>/g, " ")
-          .replace(/&nbsp;/g, " ")
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, "")
           .substring(0, 190 - (notificationMessage.length > 109 ? 3 : 0)) +
         (notificationMessage.length > 109 ? "..." : "");
 
