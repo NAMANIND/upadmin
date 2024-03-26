@@ -118,7 +118,7 @@ const Users = () => {
                 color="primary"
               />
             }
-            label={showLoggedInUsers ? "Logged-In Users" : "All Users"}
+            label={showLoggedInUsers ? "Not Logged-In Users" : "All Users"}
           />
           {/* Rest of your component code */}
         </>
@@ -229,7 +229,7 @@ const Users = () => {
   const filteredUsers = users.filter(
     (user) =>
       (showLoggedInUsers
-        ? user.expoPushToken && user.expoPushToken.trim() !== ""
+        ? !user.expoPushToken || user.expoPushToken.trim() === ""
         : true) &&
       (searchValue
         ? user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
