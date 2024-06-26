@@ -17,11 +17,12 @@ export async function GET() {
 function getAccessToken() {
   const SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"];
   return new Promise(function (resolve, reject) {
-    const key = require("../../../../assent-connect-plus-3014e-firebase-adminsdk-3r9u6-9174bda4f9.json");
+    const key_client_email = process.env.NEXT_PUBLIC_FIREBASE_CE;
+    const key_private_key = process.env.NEXT_PUBLIC_FIREBASE_PK;
     const jwtClient = new google.auth.JWT(
-      key.client_email,
+      key_client_email,
       null,
-      key.private_key,
+      key_private_key,
       SCOPES,
       null
     );
