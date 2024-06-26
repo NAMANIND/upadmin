@@ -88,18 +88,17 @@ const AddNewPost = () => {
     }
 
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        console.error("Failed to obtain access token");
-        return;
-      }
+      const notifications = expoPushTokens.map((token) => async () => {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          console.error("Failed to obtain access token");
+          return;
+        }
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
-
-      const notifications = expoPushTokens.map((token) => {
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        };
         const notification = {
           title: notificationTitle,
           body: notificationMessage,
