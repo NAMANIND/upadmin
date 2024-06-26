@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
@@ -53,17 +53,28 @@ const AddNewPost = () => {
     });
   };
 
+  const getAccessToken = async () => {
+    try {
+      const response = await axios.get("/api/token");
+      return response.data.accessToken;
+    } catch (error) {
+      console.error("Error getting access token:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      const token = await getAccessToken();
+      console.log("Access Token:", token);
+    })();
+  }, []);
+
   const sendNotification = async (
     notificationTitle,
     notiMessage,
     expoPushTokens
   ) => {
-    // const notificationMessage =
-    //   notiMessage
-    //     .replace(/<[^>]*>/g, " ") // Remove HTML tags
-    //     .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
-    //     .substring(0, 190) + "..."; // Limit notification message to 80 characters
-
     const notificationMessage =
       notiMessage
         .replace(/<[^>]*>/g, "")
@@ -77,32 +88,37 @@ const AddNewPost = () => {
     }
 
     try {
-      const serverKey = process.env.NEXT_PUBLIC_FIREBASE_SERVER_KEY;
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        console.error("Failed to obtain access token");
+        return;
+      }
+
       const headers = {
         "Content-Type": "application/json",
-        Authorization: `key=${serverKey}`,
+        Authorization: `Bearer ${accessToken}`,
       };
 
-      // Construct the notification payload
-      const notification = {
-        title: notificationTitle,
-        body: notificationMessage,
-      };
+      const notifications = expoPushTokens.map((token) => {
+        const notification = {
+          title: notificationTitle,
+          body: notificationMessage,
+        };
 
-      const fcmMessage = {
-        notification,
-        registration_ids: expoPushTokens, // An array of FCM tokens to send notifications to
-      };
+        const fcmMessage = {
+          token: token,
+          notification,
+        };
 
-      const response = await axios.post(
-        "https://fcm.googleapis.com/fcm/send",
-        fcmMessage,
-        {
-          headers,
-        }
-      );
+        return axios.post(
+          "https://fcm.googleapis.com/v1/projects/assent-connect-plus-3014e/messages:send",
+          { message: fcmMessage },
+          { headers }
+        );
+      });
 
-      console.log(response.data);
+      const responses = await Promise.all(notifications);
+      responses.forEach((response) => console.log(response.data));
     } catch (error) {
       console.error("Error sending notifications:", error);
     }

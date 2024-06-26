@@ -34,6 +34,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./page.module.css"; // Import the CSS module
 import { Logout } from "@mui/icons-material";
+import FileUpload from "../../components/fileupload/Fileupload";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -43,7 +44,7 @@ const Users = () => {
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmployeeId, setNewUserEmployeeId] = useState("");
   const [newUserTrade, setNewUserTrade] = useState(""); // Updated to use "Trade" field
-
+  const [notlogin, setNotlogin] = useState([]); // Updated to use "Trade" field
   const [searchValue, setSearchValue] = useState("");
   const [showLoggedInUsers, setShowLoggedInUsers] = useState(false); // State to toggle showing logged-in users
 
@@ -60,12 +61,34 @@ const Users = () => {
     return () => unsub();
   }, []);
 
+  // useEffect(() => {
+  //   // Copy the list of not logged-in users to the clipboard when it's updated
+  //   if (notlogin.length > 0) {
+  //     navigator.clipboard.writeText(notlogin.join("\n"));
+  //     alert("List copied to clipboard!");
+  //   }
+  // }, [notlogin]);
+
   const handleToggleUsers = () => {
     setShowLoggedInUsers(!showLoggedInUsers);
+
+    // Log the data with employee ID and name
+    // if (!showLoggedInUsers) {
+    //   const notLoggedInUsers = users.reduce((acc, user) => {
+    //     if (!user.expoPushToken || user.expoPushToken.trim() === "") {
+    //       acc.push(
+    //         `Employee ID: ${user.employeeId}, Name: ${user.name} , Trade: ${user.trade}`
+    //       );
+    //     }
+    //     return acc;
+    //   }, []);
+    //   setNotlogin(notLoggedInUsers); // Update state with not logged-in users
+    // }
   };
 
   const columns = [
     { field: "employeeId", headerName: "Employee ID", width: 250 },
+    { field: "userid", headerName: "Firebase ID", width: 250 },
     { field: "name", headerName: "Name", width: 200 },
     { field: "trade", headerName: "Trade", width: 150 },
     {
@@ -118,7 +141,7 @@ const Users = () => {
                 color="primary"
               />
             }
-            label={showLoggedInUsers ? "Logged-In Users" : "All Users"}
+            label={showLoggedInUsers ? "Not Logged-In Users" : "All Users"}
           />
           {/* Rest of your component code */}
         </>
@@ -229,7 +252,7 @@ const Users = () => {
   const filteredUsers = users.filter(
     (user) =>
       (showLoggedInUsers
-        ? user.expoPushToken && user.expoPushToken.trim() !== ""
+        ? !user.expoPushToken || user.expoPushToken.trim() === ""
         : true) &&
       (searchValue
         ? user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
@@ -263,6 +286,7 @@ const Users = () => {
             ),
           }}
         />
+        {/* <FileUpload /> */}
       </div>
 
       <DataGrid

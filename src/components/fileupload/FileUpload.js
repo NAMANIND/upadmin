@@ -35,22 +35,25 @@ const FileUpload = () => {
 
         // Extract data from CSV and upload to Firestore
         for (const row of rows) {
-          if (row.length === 0) {
-            // Skip empty rows
-            break;
+          // Ensure the row has valid data
+          if (
+            row.length < 3 ||
+            !row[0].trim() ||
+            !row[1].trim() ||
+            !row[2].trim()
+          ) {
+            break; // Stop processing when an empty row is encountered
           }
 
           const [employeeId, name, trade] = row;
-
-          // const docRef = doc(collection(db, "Users"));
 
           const UserId = uuidv4();
           const docRef = doc(db, "Users", UserId);
           const userData = {
             userid: UserId,
-            name: name,
-            employeeId: employeeId,
-            trade: trade,
+            name: name.trim(),
+            employeeId: employeeId.trim(),
+            trade: trade.trim(),
             timestamp: serverTimestamp(),
           };
 
@@ -74,13 +77,21 @@ const FileUpload = () => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "row" }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
       <input type="file" onChange={handleFileChange} />
       <Button onClick={handleUpload} disabled={uploading}>
         Upload
       </Button>
       {uploading && (
-        <div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
           <CircularProgress variant="determinate" value={progress} />
           <p>{Math.round(progress)}% uploaded</p>
         </div>

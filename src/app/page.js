@@ -47,6 +47,23 @@ const Home = () => {
     };
   }, [selectedLanguage]);
 
+  const getAccessToken = async () => {
+    try {
+      const response = await axios.get("/api/token");
+      return response.data.accessToken;
+    } catch (error) {
+      console.error("Error getting access token:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      const token = await getAccessToken();
+      console.log("Access Token:", token);
+    })();
+  }, []);
+
   const sendNotifications = async () => {
     if (!notificationTitle || !notificationMessage) {
       alert("Please enter notification title and message.");
@@ -58,19 +75,16 @@ const Home = () => {
     }
 
     try {
-      const serverKey = process.env.NEXT_PUBLIC_FIREBASE_SERVER_KEY; // Replace with your Firebase project's server key
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        console.error("Failed to obtain access token");
+        return;
+      }
+
       const headers = {
         "Content-Type": "application/json",
-        Authorization: `key=${serverKey}`,
+        Authorization: `Bearer ${accessToken}`,
       };
-
-      // Construct the notification payload
-
-      // const notificationMessagelimit =
-      //   notificationMessage
-      //     .replace(/<[^>]*>/g, " ") // Remove HTML tags
-      //     .replace(/&nbsp;/g, " ") // Replace &nbsp; with regular space
-      //     .substring(0, 190) + "...";
 
       const notificationMessagelimit =
         notificationMessage
@@ -79,25 +93,27 @@ const Home = () => {
           .substring(0, 190 - (notificationMessage.length > 109 ? 3 : 0)) +
         (notificationMessage.length > 109 ? "..." : "");
 
-      const notification = {
-        title: notificationTitle,
-        body: notificationMessagelimit,
-      };
+      const notifications = expoPushTokens.map((token) => {
+        const notification = {
+          title: notificationTitle,
+          body: notificationMessagelimit,
+        };
 
-      const fcmMessage = {
-        notification,
-        registration_ids: expoPushTokens, // An array of FCM tokens to send notifications to
-      };
+        const fcmMessage = {
+          token: token,
+          notification,
+        };
 
-      const response = await axios.post(
-        "https://fcm.googleapis.com/fcm/send",
-        fcmMessage,
-        {
-          headers,
-        }
-      );
+        return axios.post(
+          "https://fcm.googleapis.com/v1/projects/assent-connect-plus-3014e/messages:send",
+          { message: fcmMessage },
+          { headers }
+        );
+      });
 
-      console.log(response.data);
+      const responses = await Promise.all(notifications);
+      responses.forEach((response) => console.log(response.data));
+
       setNotificationTitle("");
       setNotificationMessage("");
     } catch (error) {
