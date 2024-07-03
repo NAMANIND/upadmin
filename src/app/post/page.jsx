@@ -22,6 +22,37 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
 });
 
+// Create an Axios instance
+const apiClient = axios.create();
+
+// Add a response interceptor to handle token refresh
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const accessToken = await getAccessToken();
+      apiClient.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${accessToken}`;
+      originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+      return apiClient(originalRequest);
+    }
+    return Promise.reject(error);
+  }
+);
+
+const getAccessToken = async () => {
+  try {
+    const response = await axios.get("/api/token");
+    return response.data.accessToken;
+  } catch (error) {
+    console.error("Error getting access token:", error);
+    return null;
+  }
+};
+
 const AddNewPost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -52,23 +83,6 @@ const AddNewPost = () => {
         });
     });
   };
-
-  const getAccessToken = async () => {
-    try {
-      const response = await axios.get("/api/token");
-      return response.data.accessToken;
-    } catch (error) {
-      console.error("Error getting access token:", error);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    (async () => {
-      const token = await getAccessToken();
-      console.log("Access Token:", token);
-    })();
-  }, []);
 
   const sendNotification = async (
     notificationTitle,
@@ -110,7 +124,7 @@ const AddNewPost = () => {
           notification,
         };
 
-        return axios.post(
+        return apiClient.post(
           "https://fcm.googleapis.com/v1/projects/assent-connect-plus-3014e/messages:send",
           { message: fcmMessage },
           { headers }

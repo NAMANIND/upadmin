@@ -4,8 +4,6 @@ import axios from "axios";
 import {
   TextField,
   Button,
-  Typography,
-  Container,
   Grid,
   FormControl,
   InputLabel,
@@ -14,6 +12,37 @@ import {
 } from "@mui/material";
 import { db } from "../utils/next.config";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
+
+// Create an Axios instance
+const apiClient = axios.create();
+
+// Add a response interceptor to handle token refresh
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const accessToken = await getAccessToken();
+      apiClient.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${accessToken}`;
+      originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+      return apiClient(originalRequest);
+    }
+    return Promise.reject(error);
+  }
+);
+
+const getAccessToken = async () => {
+  try {
+    const response = await axios.get("/api/token");
+    return response.data.accessToken;
+  } catch (error) {
+    console.error("Error getting access token:", error);
+    return null;
+  }
+};
 
 const Home = () => {
   const [notificationTitle, setNotificationTitle] = useState("");
@@ -47,23 +76,6 @@ const Home = () => {
     };
   }, [selectedLanguage]);
 
-  const getAccessToken = async () => {
-    try {
-      const response = await axios.get("/api/token");
-      return response.data.accessToken;
-    } catch (error) {
-      console.error("Error getting access token:", error);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    (async () => {
-      const token = await getAccessToken();
-      console.log("Access Token:", token);
-    })();
-  }, []);
-
   const sendNotifications = async () => {
     if (!notificationTitle || !notificationMessage) {
       alert("Please enter notification title and message.");
@@ -81,12 +93,11 @@ const Home = () => {
         return;
       }
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
+      apiClient.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${accessToken}`;
 
-      const notificationMessagelimit =
+      const notificationMessageLimit =
         notificationMessage
           .replace(/<[^>]*>/g, "")
           .replace(/&nbsp;/g, "")
@@ -96,7 +107,7 @@ const Home = () => {
       const notifications = expoPushTokens.map((token) => {
         const notification = {
           title: notificationTitle,
-          body: notificationMessagelimit,
+          body: notificationMessageLimit,
         };
 
         const fcmMessage = {
@@ -104,10 +115,9 @@ const Home = () => {
           notification,
         };
 
-        return axios.post(
+        return apiClient.post(
           "https://fcm.googleapis.com/v1/projects/assent-connect-plus-3014e/messages:send",
-          { message: fcmMessage },
-          { headers }
+          { message: fcmMessage }
         );
       });
 
