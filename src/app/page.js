@@ -16,33 +16,43 @@ import { collection, query, onSnapshot, where } from "firebase/firestore";
 // Create an Axios instance
 const apiClient = axios.create();
 
-// Add a response interceptor to handle token refresh
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const accessToken = await getAccessToken();
-      apiClient.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${accessToken}`;
-      originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-      return apiClient(originalRequest);
-    }
-    return Promise.reject(error);
-  }
-);
-
+// Function to get access token
 const getAccessToken = async () => {
   try {
     const response = await axios.get("/api/token");
+    console.log("Access token retrieved:", response.data.accessToken); // Debugging line
     return response.data.accessToken;
   } catch (error) {
     console.error("Error getting access token:", error);
     return null;
   }
 };
+
+// Add a response interceptor to handle token refresh
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+      const accessToken = await getAccessToken();
+      if (accessToken) {
+        apiClient.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${accessToken}`;
+        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+        console.log("Retrying original request with new access token"); // Debugging line
+        return apiClient(originalRequest);
+      }
+    }
+    console.error("Interceptor error:", error); // Debugging line
+    return Promise.reject(error);
+  }
+);
 
 const Home = () => {
   const [notificationTitle, setNotificationTitle] = useState("");
@@ -96,6 +106,7 @@ const Home = () => {
       apiClient.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${accessToken}`;
+      console.log("Access token set in headers:", accessToken); // Debugging line
 
       const notificationMessageLimit =
         notificationMessage
