@@ -108,10 +108,10 @@ const AddNewPost = () => {
         return;
       }
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
+      apiClient.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${accessToken}`;
+      console.log("Access token set in headers:", accessToken); // Debugging line
 
       const notifications = expoPushTokens.map((token) => {
         const notification = {
@@ -126,8 +126,7 @@ const AddNewPost = () => {
 
         return apiClient.post(
           "https://fcm.googleapis.com/v1/projects/assent-connect-plus-3014e/messages:send",
-          { message: fcmMessage },
-          { headers }
+          { message: fcmMessage }
         );
       });
 
@@ -161,12 +160,11 @@ const AddNewPost = () => {
           imageUrl: mediaUrl || "",
           timestamp: serverTimestamp(),
         };
-
+        await setDoc(postDocRef, postData, { merge: true });
         setTitle("");
         setContent("");
         setMedia(null);
         setSelectedLanguage("");
-        await setDoc(postDocRef, postData, { merge: true });
 
         alert("Post created successfully");
         // Clear form inputs after post creation
