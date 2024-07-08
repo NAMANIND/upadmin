@@ -1,22 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Menu from "../components/menu/Menu";
 import Navbar from "../components/navbar/Navbar";
 import "./globals.css";
-
-import { TextField, Button, FormControl } from "@mui/material";
+import { TextField, Button } from "@mui/material";
 import Image from "next/image";
+import { createJWT, verifyJWT } from "../lib/jwt";
 
 export default function RootLayout({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    // You can add your logic to validate employee ID and password here
-    // For simplicity, let's assume the login is successful if employee ID is "admin" and password is "password"
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      verifyJWT(token).then((payload) => {
+        if (payload) {
+          setIsLoggedIn(true);
+        } else {
+          localStorage.removeItem("token");
+        }
+      });
+    }
+  }, []);
+
+  const handleLogin = async () => {
     if (employeeId === "developer" && password === "123") {
+      const token = await createJWT({ employeeId });
+      localStorage.setItem("token", token);
       setIsLoggedIn(true);
     } else {
       alert("Invalid credentials. Please try again.");
@@ -85,8 +98,6 @@ export default function RootLayout({ children }) {
                   width: "300px",
                   padding: "20px",
                   borderRadius: "8px",
-                  // boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  // background: "#fff",
                 }}
               >
                 <TextField
